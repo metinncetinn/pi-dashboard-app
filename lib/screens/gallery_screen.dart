@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import 'dart:io';
+import 'package:dio/dio.dart';
+import 'package:video_player/video_player.dart';
+import 'package:image_picker/image_picker.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key});
@@ -64,6 +68,52 @@ class _GalleryScreenState extends State<GalleryScreen> {
     await _load();
   }
 
+  Future<void> _upload() async {
+    final picker = ImagePicker();
+    final files = await picker.pickMultipleMedia();
+    if (files.isEmpty) return;
+
+    // İlerleme dialogu göster
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppTheme.surfDark,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(color: AppTheme.accent),
+            const SizedBox(height: 16),
+            Text('${files.length} dosya yükleniyor…',
+                style: const TextStyle(fontSize: 13)),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final api = await ApiService.getInstance();
+      final paths = files.map((f) => f.path).toList();
+      final result = await api.uploadFiles(paths);
+      if (mounted) {
+        Navigator.pop(context); // dialogu kapat
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✓ ${result['uploaded']} dosya yüklendi'),
+            backgroundColor: const Color(0xFF1A3A1A),
+          ));
+        _load(reset: true);
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Yükleme hatası: $e'),
+              backgroundColor: AppTheme.red));
+      }
+    }
+  }
   Future<void> _delete(String id) async {
     try {
       final api = await ApiService.getInstance();
@@ -96,6 +146,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: _upload,
+        backgroundColor: AppTheme.accent,
+        foregroundColor: Colors.black,
+        child: const Icon(Icons.add_photo_alternate_outlined),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.accent))
           : _error != null
@@ -413,6 +469,7 @@ class _LightboxScreenState extends State<_LightboxScreen> {
   late int _index;
   late PageController _pageCtrl;
   ApiService? _api;
+  bool _downloading = false;
 
   @override
   void initState() {
@@ -428,12 +485,41 @@ class _LightboxScreenState extends State<_LightboxScreen> {
     super.dispose();
   }
 
-  void _download() async {
-    if (_api == null) return;
-    final item = widget.items[_index];
-    final url = _api!.downloadUrl(item['id']);
+  Future<void> _download() async {
+  if (_api == null || _downloading) return;
+  final item = widget.items[_index];
+  setState(() => _downloading = true);
+  try {
+    final dir = Directory('/storage/emulated/0/Download');
+    if (!await dir.exists()) await dir.create(recursive: true);
+    final savePath = '${dir.path}/${item['name']}';
+
+    final dio = Dio();
+    await dio.download(
+      _api!.downloadUrl(item['id']),
+      savePath,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✓ Downloads klasörüne indirildi: ${item['name']}'),
+          backgroundColor: const Color(0xFF1A3A1A),
+        ));
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('İndirme hatası: $e'),
+            backgroundColor: AppTheme.red));
+    }
+  }
+  setState(() => _downloading = false);
+}
+
+  void toast(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('İndiriliyor: ${item['name']}')));
+        SnackBar(content: Text(msg)));
   }
 
   void _delete() async {
@@ -469,10 +555,22 @@ class _LightboxScreenState extends State<_LightboxScreen> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         title: Text(item['name'],
-            style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis),
+            style: const TextStyle(fontSize: 12),
+            overflow: TextOverflow.ellipsis),
         actions: [
-          IconButton(icon: const Icon(Icons.download_outlined), onPressed: _download),
-          IconButton(icon: const Icon(Icons.delete_outline, color: AppTheme.red),
+          if (_downloading)
+            const Padding(
+              padding: EdgeInsets.all(12),
+              child: SizedBox(width: 20, height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2,
+                      color: AppTheme.accent)),
+            )
+          else
+            IconButton(
+                icon: const Icon(Icons.download_outlined),
+                onPressed: _download),
+          IconButton(
+              icon: const Icon(Icons.delete_outline, color: AppTheme.red),
               onPressed: _delete),
         ],
       ),
@@ -486,33 +584,24 @@ class _LightboxScreenState extends State<_LightboxScreen> {
                   onPageChanged: (i) => setState(() => _index = i),
                   itemBuilder: (ctx, i) {
                     final it = widget.items[i];
+                    if (it['type'] == 'video') {
+                      return _VideoPlayer(url: _api!.fileUrl(it['id']));
+                    }
                     return InteractiveViewer(
                       child: Center(
-                        child: it['type'] == 'video'
-                            ? Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.play_circle_outline,
-                                      size: 80, color: Colors.white54),
-                                  const SizedBox(height: 12),
-                                  Text(it['name'],
-                                      style: const TextStyle(color: Colors.white54,
-                                          fontSize: 12)),
-                                ],
-                              )
-                            : CachedNetworkImage(
-                                imageUrl: _api!.fileUrl(it['id']),
-                                fit: BoxFit.contain,
-                                placeholder: (_, __) => const CircularProgressIndicator(
-                                    color: AppTheme.accent),
-                                errorWidget: (_, __, ___) => const Icon(
-                                    Icons.broken_image, color: Colors.white54, size: 64),
-                              ),
+                        child: CachedNetworkImage(
+                          imageUrl: _api!.thumbUrl(it['id']),
+                          fit: BoxFit.contain,
+                          placeholder: (_, __) => const CircularProgressIndicator(
+                              color: AppTheme.accent),
+                          errorWidget: (_, __, ___) => const Icon(
+                              Icons.broken_image,
+                              color: Colors.white54, size: 64),
+                        ),
                       ),
                     );
                   },
                 ),
-                // Alt bilgi
                 Positioned(
                   bottom: 0, left: 0, right: 0,
                   child: Container(
@@ -533,6 +622,65 @@ class _LightboxScreenState extends State<_LightboxScreen> {
                 ),
               ],
             ),
+    );
+  }
+}
+
+// ── Video Player ──────────────────────────────────────
+class _VideoPlayer extends StatefulWidget {
+  final String url;
+  const _VideoPlayer({required this.url});
+
+  @override
+  State<_VideoPlayer> createState() => _VideoPlayerState();
+}
+
+class _VideoPlayerState extends State<_VideoPlayer> {
+  late VideoPlayerController _ctrl;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+      ..initialize().then((_) {
+        setState(() => _initialized = true);
+        _ctrl.play();
+      });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_initialized) {
+      return const Center(
+          child: CircularProgressIndicator(color: AppTheme.accent));
+    }
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _ctrl.value.isPlaying ? _ctrl.pause() : _ctrl.play();
+        });
+      },
+      child: Center(
+        child: AspectRatio(
+          aspectRatio: _ctrl.value.aspectRatio,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              VideoPlayer(_ctrl),
+              if (!_ctrl.value.isPlaying)
+                const Icon(Icons.play_circle_outline,
+                    size: 64, color: Colors.white70),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

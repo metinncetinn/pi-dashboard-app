@@ -154,6 +154,21 @@ class ApiService {
     await _dio.delete('/api/gallery/$id');
   }
 
+Future<Map<String, dynamic>> uploadFiles(List<String> filePaths) async {
+  _setupDio();
+  final formData = FormData();
+  for (final path in filePaths) {
+    final file = File(path);
+    final fileName = path.split('/').last;
+    formData.files.add(MapEntry(
+      'files',
+      await MultipartFile.fromFile(path, filename: fileName),
+    ));
+  }
+  final r = await _dio.post('/api/gallery/upload', data: formData);
+  return r.data;
+}
+
   String thumbUrl(String id) => '$_baseUrl/api/gallery/thumb/$id';
   String fileUrl(String id)  => '$_baseUrl/api/gallery/file/$id';
   String downloadUrl(String id) => '$_baseUrl/api/gallery/download/$id';

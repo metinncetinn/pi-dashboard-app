@@ -44,6 +44,13 @@ dependencies:
   # Video oynatma
   video_player: ^2.9.2
   
+  # İndirme için
+  permission_handler: ^11.3.1
+  path_provider: ^2.1.4
+  
+  #Yükleme
+  image_picker: ^1.1.2
+  
   # Bildirimler
   #flutter_local_notifications: ^18.0.1
   #timezone: ^0.9.4
