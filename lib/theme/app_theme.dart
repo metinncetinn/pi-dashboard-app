@@ -66,6 +66,24 @@ class AppTheme {
           side: BorderSide(color: borderDark),
         ),
       ),
+      dialogTheme: const DialogThemeData(
+        backgroundColor: surf2Dark,
+      ),
+      popupMenuTheme: const PopupMenuThemeData(
+        color: surf2Dark,
+        textStyle: TextStyle(color: textDark),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: surfDark,
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: accent,
+        linearTrackColor: Color(0xFF222222),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: accent,
+        foregroundColor: Colors.black,
+      ),
       dividerColor: borderDark,
     );
   }
@@ -113,6 +131,24 @@ class AppTheme {
           borderRadius: const BorderRadius.all(Radius.circular(8)),
           side: BorderSide(color: borderLight),
         ),
+      ),
+      dialogTheme: const DialogThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+      ),
+      popupMenuTheme: const PopupMenuThemeData(
+        color: Color(0xFFFFFFFF),
+        textStyle: TextStyle(color: Color(0xFF1C1C1E)),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: accentLight,
+        linearTrackColor: Color(0xFFE0E0E0),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: accentLight,
+        foregroundColor: Colors.white,
       ),
       dividerColor: borderLight,
     );

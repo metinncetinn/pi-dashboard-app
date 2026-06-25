@@ -179,6 +179,13 @@ Future<Map<String, dynamic>> uploadFiles(List<String> filePaths) async {
     return r.data;
   }
 
+  //İmage generation
+  Future<Map<String, dynamic>> generateImage(String prompt) async {
+    _setupDio();
+    final r = await _dio.post('/api/generate-image',
+        data: {'prompt': prompt});
+    return r.data;
+  }
   // ── System ────────────────────────────────────────
   Future<Map<String, dynamic>> getSystemInfo() async {
     final r = await _dio.get('/api/system');

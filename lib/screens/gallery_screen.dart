@@ -83,7 +83,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(color: AppTheme.accent),
+            const CircularProgressIndicator(),
             const SizedBox(height: 16),
             Text('${files.length} dosya yükleniyor…',
                 style: const TextStyle(fontSize: 13)),
@@ -148,12 +148,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: _upload,
-        backgroundColor: AppTheme.accent,
-        foregroundColor: Colors.black,
         child: const Icon(Icons.add_photo_alternate_outlined),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.accent))
+          ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? Center(
                   child: Column(
@@ -236,8 +234,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             padding: const EdgeInsets.all(16),
                             child: _loadingMore
                                 ? const Center(
-                                    child: CircularProgressIndicator(
-                                        color: AppTheme.accent))
+                                    child: CircularProgressIndicator())
                                 : OutlinedButton(
                                     onPressed: _loadMore,
                                     child: const Text('Daha Fazla Yükle'),
@@ -294,8 +291,6 @@ class _StorageCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(3),
               child: LinearProgressIndicator(
                 value: pct / 100,
-                backgroundColor: AppTheme.surf2Dark,
-                valueColor: const AlwaysStoppedAnimation(AppTheme.accent),
                 minHeight: 6,
               ),
             ),
@@ -562,8 +557,7 @@ class _LightboxScreenState extends State<_LightboxScreen> {
             const Padding(
               padding: EdgeInsets.all(12),
               child: SizedBox(width: 20, height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2,
-                      color: AppTheme.accent)),
+                  child: CircularProgressIndicator(strokeWidth: 2)),
             )
           else
             IconButton(
@@ -575,7 +569,7 @@ class _LightboxScreenState extends State<_LightboxScreen> {
         ],
       ),
       body: _api == null
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.accent))
+          ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [
                 PageView.builder(
@@ -592,8 +586,7 @@ class _LightboxScreenState extends State<_LightboxScreen> {
                         child: CachedNetworkImage(
                           imageUrl: _api!.thumbUrl(it['id']),
                           fit: BoxFit.contain,
-                          placeholder: (_, __) => const CircularProgressIndicator(
-                              color: AppTheme.accent),
+                          placeholder: (_, __) => const CircularProgressIndicator(),
                           errorWidget: (_, __, ___) => const Icon(
                               Icons.broken_image,
                               color: Colors.white54, size: 64),
@@ -659,7 +652,7 @@ class _VideoPlayerState extends State<_VideoPlayer> {
   Widget build(BuildContext context) {
     if (!_initialized) {
       return const Center(
-          child: CircularProgressIndicator(color: AppTheme.accent));
+          child: CircularProgressIndicator());
     }
     return GestureDetector(
       onTap: () {

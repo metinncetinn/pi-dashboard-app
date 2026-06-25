@@ -57,7 +57,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
         color: AppTheme.accent,
         onRefresh: _load,
         child: _loading
-            ? const Center(child: CircularProgressIndicator(color: AppTheme.accent))
+            ? const Center(child: CircularProgressIndicator())
             : _error != null
                 ? Center(
                     child: Column(

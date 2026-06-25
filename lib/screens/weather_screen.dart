@@ -62,7 +62,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppTheme.surfDark,
+        backgroundColor: Theme.of(context).dialogTheme.backgroundColor,
         title: const Text('Şehir Ekle'),
         content: TextField(
           controller: ctrl,
@@ -118,7 +118,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
         color: AppTheme.accent,
         onRefresh: _load,
         child: _loading
-            ? const Center(child: CircularProgressIndicator(color: AppTheme.accent))
+            ? const Center(child: CircularProgressIndicator())
             : _error != null
                 ? Center(
                     child: Column(
@@ -425,7 +425,7 @@ class _ForecastSheetState extends State<_ForecastSheet> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 16),
           if (_loading)
-            const Center(child: CircularProgressIndicator(color: AppTheme.accent))
+            const Center(child: CircularProgressIndicator())
           else if (_error != null)
             Center(child: Text(_error!, style: const TextStyle(color: AppTheme.red)))
           else

@@ -47,7 +47,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         color: AppTheme.accent,
         onRefresh: _load,
         child: _loading
-            ? const Center(child: CircularProgressIndicator(color: AppTheme.accent))
+            ? const Center(child: CircularProgressIndicator())
             : _error != null
                 ? Center(
                     child: Column(
@@ -108,8 +108,6 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                       ElevatedButton(
                         onPressed: () => _showTxSheet(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.accent,
-                          foregroundColor: Colors.black,
                           minimumSize: const Size(double.infinity, 48),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6)),
@@ -127,7 +125,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.surfDark,
+      backgroundColor: Theme.of(context).bottomSheetTheme.backgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -433,8 +431,6 @@ class _TxSheetState extends State<_TxSheet> {
             child: ElevatedButton(
               onPressed: _loading ? null : _submit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isAdd ? AppTheme.accent : AppTheme.red,
-                foregroundColor: _isAdd ? Colors.black : Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
               ),
               child: _loading
