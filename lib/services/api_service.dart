@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'package:dio/io.dart';
 
 class ApiService {
   static const String _baseUrlKey = 'base_url';
@@ -30,14 +32,41 @@ class ApiService {
       baseUrl: _baseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 15),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Connection': 'close',
+      },
     ));
 
-    // Geliştirme sırasında self-signed sertifikayı kabul et
-    (_dio.httpClientAdapter as dynamic).onHttpClientCreate = (client) {
+    (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
+      final client = HttpClient();
       client.badCertificateCallback = (cert, host, port) => true;
       return client;
     };
+
+    // Otomatik retry — broken pipe / connection closed hatalarında sessizce tekrar dener
+    _dio.interceptors.add(InterceptorsWrapper(
+      onError: (DioException e, handler) async {
+        if (e.type == DioExceptionType.unknown &&
+            e.error.toString().contains('HttpException')) {
+          // Bağlantıyı yenile ve tekrar dene
+          _setupDio();
+          try {
+            final opts = e.requestOptions;
+            final response = await _dio.request(
+              opts.path,
+              data: opts.data,
+              queryParameters: opts.queryParameters,
+              options: Options(method: opts.method, headers: opts.headers),
+            );
+            return handler.resolve(response);
+          } catch (retryError) {
+            return handler.next(e);
+          }
+        }
+        return handler.next(e);
+      },
+    ));
   }
 
   // Base URL'yi güncelle (ayarlar ekranından)
@@ -57,20 +86,29 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> portfolioAdd(String key, double amount) async {
+    _setupDio(); // her POST öncesi yeniden bağlan
     final r = await _dio.post('/api/portfolio/add',
         data: {'key': key, 'amount': amount});
     return r.data;
   }
 
   Future<Map<String, dynamic>> portfolioRemove(String key, double amount) async {
+    _setupDio(); // her POST öncesi yeniden bağlan
     final r = await _dio.post('/api/portfolio/remove',
         data: {'key': key, 'amount': amount});
     return r.data;
   }
 
   // ── Weather ───────────────────────────────────────
-  Future<Map<String, dynamic>> getWeather() async {
-    final r = await _dio.get('/api/weather');
+  Future<Map<String, dynamic>> getWeather({String city = ''}) async {
+    final r = await _dio.get('/api/weather',
+        queryParameters: city.isNotEmpty ? {'city': city} : null);
+    return r.data;
+  }
+  
+  Future<List<dynamic>> getWeatherForecast({String city = ''}) async {
+    final r = await _dio.get('/api/weather/forecast',
+        queryParameters: city.isNotEmpty ? {'city': city} : null);
     return r.data;
   }
 
