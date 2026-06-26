@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../main.dart';
@@ -73,7 +74,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isDark = PiDashboardApp.of(context)?.isDark ?? true;
-
+    final Uri _githubUrl = Uri.parse('https://github.com/metinncetinn');
+    
     return Scaffold(
       appBar: AppBar(title: const Text('Ayarlar')),
       body: ListView(
@@ -175,7 +177,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: 'GitHub',
                   trailing: const Icon(Icons.chevron_right,
                       color: AppTheme.mutedDark, size: 18),
-                  onTap: () {},
+                  onTap: () async {
+                    if (!await launchUrl(_githubUrl, mode: LaunchMode.externalApplication)) {
+                      throw Exception('GitHub linki açılamadı: $_githubUrl');
+                    }
+                  },
                 ),
               ],
             ),

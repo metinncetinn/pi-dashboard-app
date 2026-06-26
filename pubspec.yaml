@@ -51,6 +51,8 @@ dependencies:
   #Yükleme
   image_picker: ^1.1.2
   
+  #Url açmak için
+  url_launcher: ^6.3.2
   # Bildirimler
   #flutter_local_notifications: ^18.0.1
   #timezone: ^0.9.4
