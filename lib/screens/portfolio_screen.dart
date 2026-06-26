@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class PortfolioScreen extends StatefulWidget {
   const PortfolioScreen({super.key});
@@ -65,6 +66,9 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                     children: [
                       // ── Toplam Değer ──
                       _TotalCard(data: _data!),
+                      const SizedBox(height: 12),
+                      if ((_data!['items'] as List).isNotEmpty)
+                        _PortfolioPieChart(items: _data!['items']),
                       const SizedBox(height: 12),
                       // ── Varlıklar ──
                       if ((_data!['items'] as List).isEmpty)
@@ -469,6 +473,135 @@ class _TabBtn extends StatelessWidget {
               style: TextStyle(
                   fontSize: 13,
                   color: active ? activeColor : AppTheme.mutedDark)),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Pasta Grafiği ─────────────────────────────────────
+class _PortfolioPieChart extends StatefulWidget {
+  final List<dynamic> items;
+  const _PortfolioPieChart({required this.items});
+
+  @override
+  State<_PortfolioPieChart> createState() => _PortfolioPieChartState();
+}
+
+class _PortfolioPieChartState extends State<_PortfolioPieChart> {
+  int _touched = -1;
+
+  static const List<Color> _colors = [
+    Color(0xFFC8FF00),
+    Color(0xFF00D4FF),
+    Color(0xFFFF9800),
+    Color(0xFFE91E63),
+    Color(0xFF9C27B0),
+    Color(0xFF00BCD4),
+    Color(0xFF4CAF50),
+    Color(0xFFFF5722),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final total = widget.items.fold<double>(
+        0, (sum, it) => sum + (it['value'] as num).toDouble());
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('VARLIK DAĞILIMI',
+                style: TextStyle(
+                    fontSize: 10,
+                    color: AppTheme.mutedDark,
+                    letterSpacing: 1.5)),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                // Pasta
+                SizedBox(
+                  width: 140,
+                  height: 140,
+                  child: PieChart(
+                    PieChartData(
+                      pieTouchData: PieTouchData(
+                        touchCallback: (event, response) {
+                          setState(() {
+                            if (!event.isInterestedForInteractions ||
+                                response?.touchedSection == null) {
+                              _touched = -1;
+                              return;
+                            }
+                            _touched = response!
+                                .touchedSection!.touchedSectionIndex;
+                          });
+                        },
+                      ),
+                      sectionsSpace: 2,
+                      centerSpaceRadius: 36,
+                      sections: List.generate(widget.items.length, (i) {
+                        final it = widget.items[i];
+                        final value = (it['value'] as num).toDouble();
+                        final pct = total > 0 ? value / total * 100 : 0;
+                        final isTouched = i == _touched;
+                        return PieChartSectionData(
+                          color: _colors[i % _colors.length],
+                          value: value,
+                          title: isTouched
+                              ? '%${pct.toStringAsFixed(1)}'
+                              : '',
+                          radius: isTouched ? 52 : 44,
+                          titleStyle: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black),
+                        );
+                      }),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Lejant
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: List.generate(widget.items.length, (i) {
+                      final it = widget.items[i];
+                      final value = (it['value'] as num).toDouble();
+                      final pct = total > 0 ? value / total * 100 : 0;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 10, height: 10,
+                              decoration: BoxDecoration(
+                                color: _colors[i % _colors.length],
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(it['name'],
+                                  style: const TextStyle(fontSize: 11),
+                                  overflow: TextOverflow.ellipsis),
+                            ),
+                            Text('%${pct.toStringAsFixed(1)}',
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppTheme.mutedDark)),
+                          ],
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

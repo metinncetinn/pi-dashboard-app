@@ -3,10 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
 import 'screens/main_screen.dart';
+import 'services/connection_service.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await NotificationService.init();
+  await NotificationService.requestPermission();
   // Sadece dikey mod
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -39,8 +43,14 @@ class _PiDashboardAppState extends State<PiDashboardApp> {
   void initState() {
     super.initState();
     _isDark = widget.isDark;
+    ConnectionService.instance.startMonitoring();
   }
-
+  
+  @override
+  void dispose() {
+    ConnectionService.instance.stopMonitoring();
+    super.dispose();
+  }
   void toggleTheme() async {
     setState(() => _isDark = !_isDark);
     final prefs = await SharedPreferences.getInstance();

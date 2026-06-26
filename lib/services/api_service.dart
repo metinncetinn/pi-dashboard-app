@@ -154,20 +154,20 @@ class ApiService {
     await _dio.delete('/api/gallery/$id');
   }
 
-Future<Map<String, dynamic>> uploadFiles(List<String> filePaths) async {
-  _setupDio();
-  final formData = FormData();
-  for (final path in filePaths) {
-    final file = File(path);
-    final fileName = path.split('/').last;
-    formData.files.add(MapEntry(
-      'files',
-      await MultipartFile.fromFile(path, filename: fileName),
-    ));
+  Future<Map<String, dynamic>> uploadFiles(List<String> filePaths) async {
+    _setupDio();
+    final formData = FormData();
+    for (final path in filePaths) {
+      final file = File(path);
+      final fileName = path.split('/').last;
+      formData.files.add(MapEntry(
+        'files',
+        await MultipartFile.fromFile(path, filename: fileName),
+      ));
+    }
+    final r = await _dio.post('/api/gallery/upload', data: formData);
+    return r.data;
   }
-  final r = await _dio.post('/api/gallery/upload', data: formData);
-  return r.data;
-}
 
   String thumbUrl(String id) => '$_baseUrl/api/gallery/thumb/$id';
   String fileUrl(String id)  => '$_baseUrl/api/gallery/file/$id';
@@ -190,5 +190,19 @@ Future<Map<String, dynamic>> uploadFiles(List<String> filePaths) async {
   Future<Map<String, dynamic>> getSystemInfo() async {
     final r = await _dio.get('/api/system');
     return r.data;
+  }
+  Dio createQuickDio() {
+    final quickDio = Dio(BaseOptions(
+      baseUrl: _baseUrl,
+      connectTimeout: const Duration(seconds: 3),
+      receiveTimeout: const Duration(seconds: 3),
+      headers: {'Content-Type': 'application/json', 'Connection': 'close'},
+    ));
+    (quickDio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
+      final client = HttpClient();
+      client.badCertificateCallback = (cert, host, port) => true;
+      return client;
+    };
+    return quickDio;
   }
 }

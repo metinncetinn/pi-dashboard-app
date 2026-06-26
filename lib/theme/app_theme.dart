@@ -84,73 +84,144 @@ class AppTheme {
         backgroundColor: accent,
         foregroundColor: Colors.black,
       ),
+      inputDecorationTheme: InputDecorationTheme(
+        labelStyle: const TextStyle(color: mutedDark),
+        hintStyle: const TextStyle(color: mutedDark),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: borderDark),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: accent),
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return accent;
+          return mutedDark;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return accent.withOpacity(0.4);
+          }
+          return borderDark;
+        }),
+      ),
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: Color(0xFF1E1E1E),
+        contentTextStyle: TextStyle(color: textDark),
+      ),
       dividerColor: borderDark,
     );
   }
 
   static ThemeData light() {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: bgLight,
-      colorScheme: const ColorScheme.light(
-        primary:   accentLight,
-        secondary: Color(0xFF0099CC),
-        surface:   surfLight,
-        error:     red,
-        onPrimary: Colors.white,
-        onSurface: textLight,
+  return ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.light,
+    scaffoldBackgroundColor: bgLight,
+    colorScheme: const ColorScheme.light(
+      primary:   accentLight,
+      secondary: Color(0xFF0099CC),
+      surface:   surfLight,
+      error:     red,
+      onPrimary: Colors.white,
+      onSurface: textLight,
+    ),
+    fontFamily: 'JetBrainsMono',
+    appBarTheme: const AppBarTheme(
+      backgroundColor: bgLight,
+      foregroundColor: textLight,
+      elevation: 0,
+      centerTitle: false,
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: surfLight,
+      indicatorColor: accentLight.withOpacity(0.15),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const TextStyle(color: accentLight, fontSize: 10);
+        }
+        return const TextStyle(color: mutedLight, fontSize: 10);
+      }),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const IconThemeData(color: accentLight);
+        }
+        return const IconThemeData(color: mutedLight);
+      }),
+    ),
+    cardTheme: CardThemeData(
+      color: surfLight,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        side: BorderSide(color: borderLight),
       ),
-      fontFamily: 'JetBrainsMono',
-      appBarTheme: const AppBarTheme(
-        backgroundColor: bgLight,
-        foregroundColor: textLight,
-        elevation: 0,
-        centerTitle: false,
+    ),
+    dividerColor: borderLight,
+    dialogTheme: const DialogThemeData(
+      backgroundColor: surfLight,
+    ),
+    popupMenuTheme: PopupMenuThemeData(
+      color: surfLight,
+      textStyle: TextStyle(color: textLight),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: borderLight),
       ),
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: surfLight,
-        indicatorColor: accentLight.withOpacity(0.15),
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return const TextStyle(color: accentLight, fontSize: 10);
-          }
-          return const TextStyle(color: mutedLight, fontSize: 10);
-        }),
-        iconTheme: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: accentLight);
-          }
-          return const IconThemeData(color: mutedLight);
-        }),
+    ),
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: surfLight,
+    ),
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
+      color: accentLight,
+      linearTrackColor: Color(0xFFE0E0E0),
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: accentLight,
+      foregroundColor: Colors.white,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      labelStyle: TextStyle(color: mutedLight),
+      hintStyle: TextStyle(color: mutedLight),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: borderLight),
+        borderRadius: BorderRadius.circular(4),
       ),
-      cardTheme: CardThemeData(
-        color: surfLight,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(8)),
-          side: BorderSide(color: borderLight),
-        ),
+      focusedBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: accentLight),
+        borderRadius: BorderRadius.all(Radius.circular(4)),
       ),
-      dialogTheme: const DialogThemeData(
-        backgroundColor: Color(0xFFFFFFFF),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(4),
       ),
-      popupMenuTheme: const PopupMenuThemeData(
-        color: Color(0xFFFFFFFF),
-        textStyle: TextStyle(color: Color(0xFF1C1C1E)),
+    ),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return accentLight;
+        return mutedLight;
+      }),
+      trackColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return accentLight.withOpacity(0.4);
+        }
+        return const Color(0xFFE0E0E0);
+      }),
+    ),
+    dropdownMenuTheme: DropdownMenuThemeData(
+      menuStyle: MenuStyle(
+        backgroundColor: WidgetStateProperty.all(surfLight),
       ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: Color(0xFFFFFFFF),
-      ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: accentLight,
-        linearTrackColor: Color(0xFFE0E0E0),
-      ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: accentLight,
-        foregroundColor: Colors.white,
-      ),
-      dividerColor: borderLight,
-    );
-  }
+    ),
+    snackBarTheme: const SnackBarThemeData(
+      backgroundColor: Color(0xFF323232),
+      contentTextStyle: TextStyle(color: Colors.white),
+    ),
+  );
+}
 }

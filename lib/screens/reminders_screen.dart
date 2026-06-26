@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../services/notification_service.dart';
 
 class RemindersScreen extends StatefulWidget {
   const RemindersScreen({super.key});
@@ -225,6 +226,55 @@ class _AddReminderCardState extends State<_AddReminderCard> {
         body = {'type': 'once', 'text': text, 'fire_at': t};
       }
       await api.createReminder(body);
+      final notifId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      if (_isRepeat) {
+        if (_repeatType == 'gün') {
+          await NotificationService.scheduleDaily(
+            id: notifId,
+            title: '⏰ Hatırlatıcı',
+            body: text,
+            hour: _hour,
+            minute: _minute,
+          );
+        } else {
+          await NotificationService.scheduleWeekly(
+            id: notifId,
+            title: '⏰ Hatırlatıcı',
+            body: text,
+            weekday: _weekday,
+            hour: _hour,
+            minute: _minute,
+          );
+        }
+      } else {
+        // Bir kerelik — fire_at string'ini parse et
+        final t = _timeCtrl.text.trim().toLowerCase();
+        DateTime? fireAt;
+        final now = DateTime.now();
+        if (t.endsWith('saat')) {
+          final h = double.tryParse(t.replaceAll('saat', ''));
+          if (h != null) fireAt = now.add(Duration(minutes: (h * 60).round()));
+        } else if (t.endsWith('dk') || t.endsWith('dakika')) {
+          final m = double.tryParse(t.replaceAll('dakika', '').replaceAll('dk', ''));
+          if (m != null) fireAt = now.add(Duration(minutes: m.round()));
+        } else if (t.contains(':')) {
+          final parts = t.split(':');
+          final h = int.tryParse(parts[0]);
+          final m = int.tryParse(parts[1]);
+          if (h != null && m != null) {
+            fireAt = DateTime(now.year, now.month, now.day, h, m);
+            if (fireAt!.isBefore(now)) fireAt = fireAt.add(const Duration(days: 1));
+          }
+        }
+        if (fireAt != null) {
+          await NotificationService.scheduleOnce(
+            id: notifId,
+            title: '⏰ Hatırlatıcı',
+            body: text,
+            fireAt: fireAt,
+          );
+        }
+      }
       _textCtrl.clear();
       _timeCtrl.clear();
       widget.onCreated();

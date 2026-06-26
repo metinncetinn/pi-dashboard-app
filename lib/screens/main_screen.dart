@@ -6,6 +6,9 @@ import 'weather_screen.dart';
 import 'reminders_screen.dart';
 import 'gallery_screen.dart';
 import 'tools_screen.dart';
+import 'system_screen.dart';
+import '../services/connection_service.dart';
+import '../theme/app_theme.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,14 +17,34 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
 
+@override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ConnectionService.instance.checkNow();
+    }
+  }
+  
   final List<Widget> _screens = const [
     PortfolioScreen(),
     WeatherScreen(),
     RemindersScreen(),
     GalleryScreen(),
+    SystemScreen(),
     ToolsScreen(),
   ];
 
@@ -40,6 +63,29 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
         actions: [
+          ListenableBuilder(
+            listenable: ConnectionService.instance,
+            builder: (ctx, _) {
+              final conn = ConnectionService.instance;
+              return GestureDetector(
+                onTap: () => conn.checkNow(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: conn.checking
+                      ? const SizedBox(
+                          width: 14, height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2))
+                      : Icon(
+                          conn.connected
+                              ? Icons.circle
+                              : Icons.circle_outlined,
+                          size: 12,
+                          color: conn.connected ? AppTheme.green : AppTheme.red,
+                        ),
+                ),
+              );
+            },
+          ),
           // Ayarlar
           IconButton(
             icon: const Icon(Icons.settings_outlined, size: 20),
@@ -85,6 +131,10 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.photo_library_outlined),
             label: 'Galeri',
           ),
+          NavigationDestination(
+              icon: Icon(Icons.monitor_heart_outlined),
+              label: 'Sistem',
+            ),
           NavigationDestination(
             icon: Icon(Icons.grid_view_outlined),
             label: 'Araçlar',
