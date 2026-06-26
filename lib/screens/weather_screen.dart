@@ -115,7 +115,6 @@ class _WeatherScreenState extends State<WeatherScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: RefreshIndicator(
-        color: AppTheme.accent,
         onRefresh: _load,
         child: _loading
             ? const Center(child: CircularProgressIndicator())

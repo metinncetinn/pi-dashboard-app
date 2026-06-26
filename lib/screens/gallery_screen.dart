@@ -168,7 +168,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   ),
                 )
               : RefreshIndicator(
-                  color: AppTheme.accent,
                   onRefresh: () => _load(reset: true),
                   child: CustomScrollView(
                     slivers: [

@@ -44,7 +44,6 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
 
     return Scaffold(
       body: RefreshIndicator(
-        color: AppTheme.accent,
         onRefresh: _load,
         child: _loading
             ? const Center(child: CircularProgressIndicator())

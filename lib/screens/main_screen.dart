@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
+import 'settings_screen.dart';
 import 'portfolio_screen.dart';
 import 'weather_screen.dart';
 import 'reminders_screen.dart';
@@ -39,6 +40,14 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
         actions: [
+          // Ayarlar
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, size: 20),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+          ),
           // Tema toggle
           IconButton(
             icon: Icon(
