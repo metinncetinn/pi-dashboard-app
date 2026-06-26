@@ -5,9 +5,12 @@ import 'theme/app_theme.dart';
 import 'screens/main_screen.dart';
 import 'services/connection_service.dart';
 import 'services/notification_service.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
 
   await NotificationService.init();
   await NotificationService.requestPermission();
@@ -22,6 +25,7 @@ void main() async {
   final isDark = prefs.getBool('is_dark') ?? true;
 
   runApp(PiDashboardApp(isDark: isDark));
+  FlutterNativeSplash.remove();
 }
 
 class PiDashboardApp extends StatefulWidget {

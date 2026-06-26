@@ -56,6 +56,10 @@ dependencies:
 
   #Url açmak için
   url_launcher: ^6.3.2
+
+  #splash screen
+  flutter_native_splash: ^2.4.3
+
   # Bildirimler
   awesome_notifications: ^0.10.1
   timezone: ^0.11.0
@@ -104,3 +108,11 @@ flutter_launcher_icons:
   min_sdk_android: 21
   adaptive_icon_background: "#0a0a0a"
   adaptive_icon_foreground: "assets/icon/icon_fg.png"
+
+flutter_native_splash:
+  color: "#0a0a0a"
+  image: assets/icon/icon.png
+  android_12:
+    color: "#0a0a0a"
+    image: assets/icon/icon.png
+  fullscreen: true
