@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../services/cache_service.dart';
 
 class PortfolioScreen extends StatefulWidget {
   const PortfolioScreen({super.key});
@@ -21,14 +22,34 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     _load();
   }
 
+  bool _isOffline = false;
+  String? _cacheTime;
+  
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
     try {
       final api = await ApiService.getInstance();
       final data = await api.getPortfolio();
-      setState(() { _data = data; _loading = false; });
+      await CacheService.save('portfolio', data);
+      setState(() {
+        _data = data;
+        _loading = false;
+        _isOffline = false;
+        _cacheTime = null;
+      });
     } catch (e) {
-      setState(() { _error = e.toString(); _loading = false; });
+      // Bağlantı yoksa cache'den yükle
+      final cached = await CacheService.load('portfolio');
+      if (cached != null) {
+        setState(() {
+          _data = cached['data'];
+          _loading = false;
+          _isOffline = true;
+          _cacheTime = CacheService.timeAgo(cached['time']);
+        });
+      } else {
+        setState(() { _error = e.toString(); _loading = false; });
+      }
     }
   }
 
@@ -64,6 +85,29 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                 : ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
+                      // ── Offline Banner ──
+                      if (_isOffline)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFF980020),
+                            border: Border.all(color: const Color(0xFFFF9800)),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.wifi_off, size: 14, color: Color(0xFFFF9800)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Çevrimdışı — son güncelleme: $_cacheTime',
+                                  style: const TextStyle(fontSize: 11, color: Color(0xFFFF9800)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       // ── Toplam Değer ──
                       _TotalCard(data: _data!),
                       const SizedBox(height: 12),

@@ -180,10 +180,15 @@ class ApiService {
   }
 
   //İmage generation
-  Future<Map<String, dynamic>> generateImage(String prompt) async {
+  Future<Map<String, dynamic>> generateImage(
+      String prompt, {
+      String style = '',
+      String size = '1024x1024',
+    }) async {
     _setupDio();
+    final fullPrompt = style.isNotEmpty ? '$prompt, $style' : prompt;
     final r = await _dio.post('/api/generate-image',
-        data: {'prompt': prompt});
+        data: {'prompt': fullPrompt, 'size': size});
     return r.data;
   }
   // ── System ────────────────────────────────────────

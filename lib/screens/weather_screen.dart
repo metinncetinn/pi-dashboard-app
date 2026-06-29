@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../services/cache_service.dart';
 
 class WeatherScreen extends StatefulWidget {
   const WeatherScreen({super.key});
@@ -16,6 +17,8 @@ class _WeatherScreenState extends State<WeatherScreen> {
   String? _error;
   List<String> _cities = [];
   String _selectedCity = '';
+  bool _isOffline = false;
+  String? _cacheTime;
 
   @override
   void initState() {
@@ -43,9 +46,25 @@ class _WeatherScreenState extends State<WeatherScreen> {
     try {
       final api = await ApiService.getInstance();
       final data = await api.getWeather(city: _selectedCity);
-      setState(() { _data = data; _loading = false; });
+      await CacheService.save('weather_$_selectedCity', data);
+      setState(() {
+        _data = data;
+        _loading = false;
+        _isOffline = false;
+        _cacheTime = null;
+      });
     } catch (e) {
-      setState(() { _error = e.toString(); _loading = false; });
+      final cached = await CacheService.load('weather_$_selectedCity');
+      if (cached != null) {
+        setState(() {
+          _data = cached['data'];
+          _loading = false;
+          _isOffline = true;
+          _cacheTime = CacheService.timeAgo(cached['time']);
+        });
+      } else {
+        setState(() { _error = e.toString(); _loading = false; });
+      }
     }
   }
 
@@ -135,6 +154,29 @@ class _WeatherScreenState extends State<WeatherScreen> {
                 : ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
+                      // ── Offline Banner ──
+                      if (_isOffline)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFF980020),
+                            border: Border.all(color: const Color(0xFFFF9800)),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.wifi_off, size: 14, color: Color(0xFFFF9800)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Çevrimdışı — son güncelleme: $_cacheTime',
+                                  style: const TextStyle(fontSize: 11, color: Color(0xFFFF9800)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       // ── Şehir seçici ──
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
